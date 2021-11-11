@@ -23,5 +23,4 @@ public class Transfer {
     private Long amount;
     private LocalDateTime date;
     private String status;
-
 }

@@ -22,6 +22,11 @@ public class Transactions {
         private String senderAccountNumber;
         private String receiverAccountNumber;
         private Long amount;
-        private LocalDateTime date;
+        private LocalDateTime createdOn;
+        private String createdBy;
+        private LocalDateTime lastModifiedOn;
+        private String lastModifiedBy;
         private String status;
+
+
 }

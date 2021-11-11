@@ -28,4 +28,7 @@ public class Product {
 //    private LocalDateTime productExpiration;
     private String description;
     private Long maximumAmount;
+
+    private String createdBy;
+    private LocalDateTime createdOn;
 }

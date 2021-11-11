@@ -43,8 +43,8 @@ public class Application<accounts> {
 	{
 
 		return args -> {
-			adminService.createProduct(new Product(null,"SAVINGS ACCOUNT","savings account", 1000000L));
-			adminService.createProduct(new Product(null,"CURRENT ACCOUNT","current account", 10000000L));
+			adminService.createProduct(new Product(null,"SAVINGS ACCOUNT","savings account", 1000000L,"superadmin",LocalDateTime.now()));
+			adminService.createProduct(new Product(null,"CURRENT ACCOUNT","current account", 10000000L,"superadmin",LocalDateTime.now()));
 
 			controller.createSuperAdmin("superadmin","superadmin@gmail.com","@superadmin123","+237653368683");
 
@@ -53,10 +53,7 @@ public class Application<accounts> {
 				createUserRequest.setUserName("rouclec123");
 				createUserRequest.setPhoneNumber("+237650184172");
 				createUserRequest.setEmail("senatorasonganyi97@gmail.com");
-				createUserRequest.setAccountNumber("1234");
 				createUserRequest.setAccountDurationInMonths(5L);
-				createUserRequest.setProductName("current account");
-
 				controller.signUp(createUserRequest);
 
 		};

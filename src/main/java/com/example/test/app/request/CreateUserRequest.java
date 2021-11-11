@@ -11,7 +11,5 @@ public class CreateUserRequest {
     private String email;
     private String phoneNumber;
     private String password;
-    private String productName;
-    private String accountNumber;
     private Long accountDurationInMonths;
 }

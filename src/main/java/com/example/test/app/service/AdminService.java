@@ -5,6 +5,8 @@ import com.example.test.app.repository.*;
 import com.example.test.app.request.CreateAdminRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -49,11 +51,6 @@ public class AdminService {
         productRepository.save(product);
         return product;
     }
-//    public Role createRole(CreateRoleRequest createRoleRequest){
-//        Role role = new Role(null,createRoleRequest.getRoleName());
-//        roleRepository.save(role);
-//        return role;
-//    }
 
 
     public Shortee saveShortee(MultipartFile file, String fullName) {
@@ -91,7 +88,7 @@ public class AdminService {
         Withdrawal withdrawal = withdrawalRepository.getById(transactionId);
         Optional<Account> account = accountRepository.findByAccountNumber(transaction.getSenderAccountNumber());
         Long balance = (account.get().getAccountBalance() - transaction.getAmount());
-        if(account.get().getAccountBalance().compareTo(balance)<0)
+        if(balance<0)
             throw new Error("Cannot confirm transaction due to insufficient funds");
         account.get().setAccountBalance(balance);
         transaction.setStatus("CONFIRMED");
@@ -101,13 +98,39 @@ public class AdminService {
         accountRepository.save(account.get());
     }
 
+    public String adminDeactivateAccount(String accountNumber){
+
+
+        Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
+            if(account.get().isSuspended()){
+                throw new Error("Account is suspended!!");
+            }
+            else {
+                account.get().setActive(false);
+                accountRepository.save(account.get());
+                return "Account with account number " + accountNumber + " deactivated successfully";
+            }
+    }
     public String suspendAccount(String accountNumber){
         Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
-        account.get().setSuspended(true);
-        accountRepository.save(account.get());
-        return "Account with account number " + accountNumber +" suspended successfully";
+        if(account.get().isActive())
+        {
+            account.get().setSuspended(true);
+            accountRepository.save(account.get());
+            return "Account with account number " + accountNumber + " suspended successfully";
+        }
+        else{
+            throw new Error("Account Deactivated!!");
+        }
     }
     public ResponseEntity<?> confirmTransaction(Long transactionId) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
         Transactions transaction = transactionRepository.getById(transactionId);
         if(transaction.getStatus().equals("CONFIRMED"))
             throw new Error("Transaction already confirmed");
@@ -127,6 +150,9 @@ public class AdminService {
         if(transfer){
             confirmTransfer(transactionId);
         }
+        transaction.setLastModifiedOn(LocalDateTime.now());
+        transaction.setLastModifiedBy(username);
+        transactionRepository.save(transaction);
         return ResponseEntity.ok().build();
     }
     public String restoreAccount(String accountNumber){
@@ -143,6 +169,13 @@ public class AdminService {
                                             String phoneNumber,
                                            String shorteeName,
                                            String shorteeName2){
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
         Shortee shortee = saveShortee(file,shorteeName);
         Shortee shortee1 = saveShortee(file2,shorteeName2);
         List<Shortee> shortees = new ArrayList<>(2);
@@ -156,7 +189,10 @@ public class AdminService {
         user.setRole("ROLE_ADMIN");
         user.setAccountList(null);
         user.setShorteeList(shortees);
-        user.setDateCreated(LocalDateTime.now());
+        user.setCreatedOn(LocalDateTime.now());
+        user.setCreatedBy(username);
+        user.setLastModifiedBy(username);
+        user.setLastModifiedOn(LocalDateTime.now());
          userRepository.save(user);
         return ResponseEntity.ok().build();
     }
@@ -174,7 +210,8 @@ public class AdminService {
         user.setRole("ROLE_SUPER_ADMIN");
         user.setAccountList(null);
         user.setShorteeList(null);
-        user.setDateCreated(LocalDateTime.now());
+        user.setCreatedOn(LocalDateTime.now());
+        user.setLastModifiedOn(LocalDateTime.now());
         userRepository.save(user);
         return ResponseEntity.ok().build();
     }
@@ -183,13 +220,12 @@ public class AdminService {
         Transactions transaction = transactionRepository.getById(transactionId);
         Optional<Account> senderAccount = accountRepository.findByAccountNumber(transaction.getSenderAccountNumber());
         Optional<Account> receiverAccount = accountRepository.findByAccountNumber(transaction.getReceiverAccountNumber());
-        if (transaction.getAmount().compareTo(senderAccount.get().getAccountBalance()) > 0)
-            throw new Error("Cannot confirm transaction due to insufficient funds");
-        Long receiverBalance0 = (receiverAccount.get().getAccountBalance()+transaction.getAmount());
-        if (receiverAccount.get().getProduct().getMaximumAmount().compareTo(receiverBalance0)<0)
-            throw new Error("Cannot confirm transaction, receiver's account balance cannot exceed " + receiverAccount.get().getProduct().getMaximumAmount());
         Long senderBalance = (senderAccount.get().getAccountBalance() - transaction.getAmount());
-        Long receiverBalance = (receiverAccount.get().getAccountBalance() + transaction.getAmount());
+        Long receiverBalance = (receiverAccount.get().getAccountBalance()+transaction.getAmount());
+        if (senderBalance<0)
+            throw new Error("Cannot confirm transaction due to insufficient funds");
+        if (receiverAccount.get().getProduct().getMaximumAmount().compareTo(receiverBalance)<0)
+            throw new Error("Cannot confirm transaction, receiver's account balance cannot exceed " + receiverAccount.get().getProduct().getMaximumAmount());
         senderAccount.get().setAccountBalance(senderBalance);
         receiverAccount.get().setAccountBalance(receiverBalance);
         transaction.setStatus("CONFIRMED");
@@ -200,12 +236,4 @@ public class AdminService {
         accountRepository.save(senderAccount.get());
         accountRepository.save(receiverAccount.get());
     }
-
-//    public Admin createAdmin(CreateAdminRequest createAdminRequest){
-//        Admin admin = new Admin();
-//        admin.setDateCreated(LocalDate.now());
-//        admin.setFirstName(createAdminRequest.getFirstName());
-//        admin.setPassword(createAdminRequest.getPassword());
-//        admin.setRole(createAdminRequest.getRole());
-//    }
 }

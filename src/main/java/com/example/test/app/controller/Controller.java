@@ -44,19 +44,7 @@ public class Controller {
 
     @PutMapping("/user/deactivate_account")
     public String deactivateAccount(@RequestParam String accountNumber){
-      return userService.deactivateAccount(accountNumber);
-    }
-    public void firstUser(){
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setPassword("@admin123");
-        createUserRequest.setUserName("rouclec123");
-        createUserRequest.setPhoneNumber("+237650184172");
-        createUserRequest.setEmail("senatorasonganyi97@gmail.com");
-        createUserRequest.setAccountNumber("1234");
-        createUserRequest.setAccountDurationInMonths(5L);
-        createUserRequest.setProductName("current account");
-
-        signUp(createUserRequest);
+      return userService.userDeactivateAccount(accountNumber);
     }
 
     @GetMapping("/all/signup")
@@ -65,10 +53,14 @@ public class Controller {
 
         return "Successful!";
     }
+    @GetMapping("/user/getLastTenTransactions")
+    public List<Transactions> getLastTenTransactions(){
+        return userService.getLastTenTransactions();
+    }
 
     @PutMapping("/admin/deactivate_account")
     public String adminDeactivateAccount(@RequestParam  String accountNumber){
-       return userService.deactivateAccount(accountNumber);
+       return adminService.adminDeactivateAccount(accountNumber);
     }
     @PutMapping("/admin/suspend_account")
     public String suspendAccount(@RequestParam String accountNumber){
@@ -149,8 +141,7 @@ public class Controller {
         if(!accounts.isEmpty()) {
             accounts.stream().forEach(acc -> {
                 if ((acc.getExpiration().isBefore(LocalDateTime.now()))&&(acc.isActive())) {
-                    userService.deactivateAccount(acc.getAccountNumber());
-                    acc.setActive(false);
+                    adminService.adminDeactivateAccount(acc.getAccountNumber());
                 }
             });
 

@@ -35,6 +35,10 @@ public class User {
     @ManyToMany
     private List<Shortee> shorteeList;
 
-    private LocalDateTime dateCreated;
 
+    private String createdBy;
+    private String lastModifiedBy;
+
+    private LocalDateTime createdOn;
+    private LocalDateTime lastModifiedOn;
 }

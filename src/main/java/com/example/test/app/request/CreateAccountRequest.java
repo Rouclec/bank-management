@@ -6,10 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateAccountRequest {
-
-    private String userName;
-    private String accountNumber;
-
     private Long durationInMonths;
     private String productName;
 }

@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @Setter
 public class Account {
     @Id
-    private String accountNumber;
+    private String accountNumber = UUID.randomUUID().toString().replace("-","").substring(0,9);
     private Long accountBalance;
     @OneToOne
     @JoinColumn(name = "product_id")
@@ -29,4 +30,6 @@ public class Account {
     private boolean isSuspended;
 
     private String userName;
+    private LocalDateTime createdOn;
+
 }

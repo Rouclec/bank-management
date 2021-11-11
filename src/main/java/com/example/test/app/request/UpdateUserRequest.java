@@ -10,7 +10,8 @@ public class UpdateUserRequest {
     private String userName;
     private String email;
     private String phoneNumber;
-    private String password;
+    private String oldPassword;
+    private String newPassword;
 
 
     private Account account;
