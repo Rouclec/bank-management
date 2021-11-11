@@ -12,4 +12,5 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transactions, Long> {
     List<Transactions> findByCreatedBy(String createdBy, Pageable pageable);
+    List<Transactions> findByStatus(String status);
 }

@@ -3,6 +3,7 @@ package com.example.test.app.service;
 import com.example.test.app.models.*;
 import com.example.test.app.repository.*;
 import com.example.test.app.request.CreateAdminRequest;
+import com.example.test.app.request.CreateProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,9 +48,26 @@ public class AdminService {
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
-    public Product createProduct(Product product){
+    public Product createProduct(CreateProductRequest createProductRequest){
+        Product product = new Product();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        product.setCreatedBy(username);
+        product.setCreatedOn(LocalDateTime.now());
+        product.setProductName(createProductRequest.getProductName());
+        product.setDescription(createProductRequest.getDescription());
+        product.setMaximumAmount(createProductRequest.getMaximumAmount());
         productRepository.save(product);
         return product;
+    }
+
+    public List<Transactions> getPendingTransactions(){
+        return transactionRepository.findByStatus("PENDING");
     }
 
 

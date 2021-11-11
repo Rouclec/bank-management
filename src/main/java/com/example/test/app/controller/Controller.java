@@ -36,11 +36,6 @@ public class Controller {
     @Autowired
     ProductRepository productRepository;
 
-    @GetMapping("/custom_login")
-    public String customLogin(@RequestParam String userName, @RequestParam String password){
-        return "login successful";
-    }
-
 
     @PutMapping("/user/deactivate_account")
     public String deactivateAccount(@RequestParam String accountNumber){
@@ -49,9 +44,7 @@ public class Controller {
 
     @GetMapping("/all/signup")
     public String signUp(@ModelAttribute CreateUserRequest createUserRequest) {
-        userService.createUser(createUserRequest);
-
-        return "Successful!";
+        return userService.createUser(createUserRequest);
     }
     @GetMapping("/user/getLastTenTransactions")
     public List<Transactions> getLastTenTransactions(){
@@ -70,13 +63,18 @@ public class Controller {
     public String restoreAccount(@RequestParam String accountNumber){
       return adminService.restoreAccount(accountNumber);
     }
-    @PostMapping("/user/forgot_password/{userName}/{newPassword}")
-    public ResponseEntity<User> forgotPassword(@PathVariable String userName, @PathVariable String newPassword){
-        return userService.forgotPassword(userName,newPassword);
-    }
+
     @PostMapping("/admin/create_product")
-    public ResponseEntity<Product> createProduct(@ModelAttribute Product product){
-        return ResponseEntity.ok(adminService.createProduct(product));
+    public ResponseEntity<Product> createProduct(@ModelAttribute CreateProductRequest createProductRequest){
+        return ResponseEntity.ok(adminService.createProduct(createProductRequest));
+    }
+    @GetMapping("/admin/getPendingTransactions")
+    public List<Transactions> getPendingTransactions(){
+        return adminService.getPendingTransactions();
+    }
+    @GetMapping("/user/getAccountNumber")
+    public String getAccountBalance(@RequestParam String accountNumber){
+        return userService.getAccountBalance(accountNumber);
     }
 
     @PostMapping("/user/save")
@@ -103,8 +101,13 @@ public class Controller {
         return ResponseEntity.ok(account);
     }
 
+    @PutMapping("/user/updateUser")
+    public String updateUser(@ModelAttribute UpdateUserRequest updateUserRequest){
+      User user =  userService.updateUser(updateUserRequest);
+        return user.getUserName() + " updated Successfully!";
+    }
 
-    @PutMapping("/admin/confirmtransaction/{transactionId}")
+    @PutMapping("/admin/confirmTransaction/{transactionId}")
     public ResponseEntity<?> confirmTransaction(@PathVariable Long transactionId) {
       return adminService.confirmTransaction(transactionId);
     }

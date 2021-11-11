@@ -32,11 +32,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.cors().disable();
         http
                 .authorizeRequests()
-                .antMatchers("/signup").permitAll()
-                .antMatchers("/api/v1/user/**").hasRole("USER")
-                .antMatchers("/api/v1/**").hasAnyRole("SUPER_ADMIN")
-                .antMatchers("/api/v1/super_admin/**").hasAnyRole("USER")
                 .antMatchers("/api/v1/all/**").permitAll()
+                .antMatchers("/api/v1/user/**").hasRole("USER")
+                .antMatchers("/api/v1/admin/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                .antMatchers("/api/v1/**").hasRole("SUPER_ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin();

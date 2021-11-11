@@ -13,7 +13,4 @@ public class UpdateUserRequest {
     private String oldPassword;
     private String newPassword;
 
-
-    private Account account;
-
 }

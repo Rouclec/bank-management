@@ -51,7 +51,7 @@ public class UserService {
     @Autowired
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public User createUser(CreateUserRequest createUserRequest){
+    public String createUser(CreateUserRequest createUserRequest){
         User user = new User();
 
         user.setUserName(createUserRequest.getUserName());
@@ -77,7 +77,24 @@ public class UserService {
         user.setLastModifiedBy(createUserRequest.getUserName());
         user.setLastModifiedOn(LocalDateTime.now());
         userRepository.save(user);
-        return user;
+        return "Your account number is: " + account.getAccountNumber();
+    }
+    public String getAccountBalance(String accountNumber){
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
+        if((account.get().getUserName()).equals(username)){
+           return "Current account balance: " + account.get().getAccountBalance();
+        }
+        else{
+            throw new Error("Access denied!!");
+        }
+
     }
     public List<User> getAllUsers(){
         return userRepository.findAll();
@@ -129,7 +146,7 @@ public class UserService {
             if (updateUserRequest.getNewPassword() != null) {
                 if(passwordEncoder.matches(updateUserRequest.getOldPassword(),user.get().getPassword()))
                 {
-                    user.get().setPassword(updateUserRequest.getNewPassword());
+                    user.get().setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
                 }
                 else{
                     throw new Error("Old password doesn't match!!");

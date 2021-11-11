@@ -5,6 +5,7 @@ import com.example.test.app.models.Account;
 import com.example.test.app.models.Product;
 import com.example.test.app.models.User;
 import com.example.test.app.repository.AccountRepository;
+import com.example.test.app.repository.ProductRepository;
 import com.example.test.app.repository.UserRepository;
 import com.example.test.app.request.CreateUserRequest;
 import com.example.test.app.service.AdminService;
@@ -29,7 +30,7 @@ import java.util.List;
 @EnableScheduling
 public class Application<accounts> {
 	@Autowired
-	UserRepository userRepository;
+	ProductRepository productRepository;
 
 	@Autowired
 	Controller controller;
@@ -43,9 +44,10 @@ public class Application<accounts> {
 	{
 
 		return args -> {
-			adminService.createProduct(new Product(null,"SAVINGS ACCOUNT","savings account", 1000000L,"superadmin",LocalDateTime.now()));
-			adminService.createProduct(new Product(null,"CURRENT ACCOUNT","current account", 10000000L,"superadmin",LocalDateTime.now()));
-
+			Product product1 = new Product(null,"SAVINGS ACCOUNT","savings account", 1000000L,"superadmin",LocalDateTime.now());
+			Product product2 = new Product(null,"CURRENT ACCOUNT","current account", 10000000L,"superadmin",LocalDateTime.now());
+			productRepository.save(product1);
+			productRepository.save(product2);
 			controller.createSuperAdmin("superadmin","superadmin@gmail.com","@superadmin123","+237653368683");
 
 				CreateUserRequest createUserRequest = new CreateUserRequest();

@@ -23,9 +23,6 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String productName;
-//    private String productDuration;
-//    @JsonIgnore
-//    private LocalDateTime productExpiration;
     private String description;
     private Long maximumAmount;
 
