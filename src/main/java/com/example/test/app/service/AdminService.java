@@ -1,9 +1,11 @@
 package com.example.test.app.service;
 
+import com.example.test.app.configuration.multitenancy.TenantService;
 import com.example.test.app.models.*;
 import com.example.test.app.repository.*;
 import com.example.test.app.request.CreateAdminRequest;
 import com.example.test.app.request.CreateProductRequest;
+import org.aspectj.bridge.MessageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +48,12 @@ public class AdminService {
     TransferRepository transferRepository;
 
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Autowired
+    TenantService tenantService;
+
+    @Autowired
+    InstitutionRepository institutionRepository;
 
 
     public Product createProduct(CreateProductRequest createProductRequest){
@@ -254,4 +262,12 @@ public class AdminService {
         accountRepository.save(senderAccount.get());
         accountRepository.save(receiverAccount.get());
     }
+    public void createNewInstitution(String institutionName){
+            Institution institution = new Institution();
+            institution.setInstitutionName(institutionName);
+            tenantService.initDatabase(institutionName);
+            institutionRepository.save(institution);
+    }
 }
+
+
