@@ -1,11 +1,9 @@
 package com.example.test.app.service;
 
-import com.example.test.app.configuration.multitenancy.TenantService;
+
 import com.example.test.app.models.*;
 import com.example.test.app.repository.*;
-import com.example.test.app.request.CreateAdminRequest;
 import com.example.test.app.request.CreateProductRequest;
-import org.aspectj.bridge.MessageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,8 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -31,11 +27,6 @@ public class AdminService {
     ProductRepository productRepository;
 
     @Autowired
-    ShorteeRepository shorteeRepository;
-
-
-
-    @Autowired
     AccountRepository accountRepository;
 
     @Autowired
@@ -47,10 +38,13 @@ public class AdminService {
     @Autowired
     TransferRepository transferRepository;
 
+    @Autowired
+    ShorteeRepository shorteeRepository;
+
     PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Autowired
-    TenantService tenantService;
+//    @Autowired
+//    TenantService tenantService;
 
     @Autowired
     InstitutionRepository institutionRepository;
@@ -98,7 +92,7 @@ public class AdminService {
     }
 
 
-        public void confirmSave(Long transactionId){
+    public void confirmSave(Long transactionId){
         Transactions transaction = transactionRepository.getById(transactionId);
         Optional<Account> account = accountRepository.findByAccountNumber(transaction.getSenderAccountNumber());
         Long balance = account.get().getAccountBalance() + transaction.getAmount();
@@ -128,18 +122,18 @@ public class AdminService {
 
 
         Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
-            if(account.get().isSuspended()){
-                throw new Error("Account is suspended!!");
-            }
-            else {
-                account.get().setActive(false);
-                accountRepository.save(account.get());
-                return "Account with account number " + accountNumber + " deactivated successfully";
-            }
+        if(account.get().isSuspended()){
+            throw new Error("Account is suspended!!");
+        }
+        else {
+            account.get().setExpiration(LocalDateTime.now());
+            accountRepository.save(account.get());
+            return "Account with account number " + accountNumber + " deactivated successfully";
+        }
     }
     public String suspendAccount(String accountNumber){
         Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
-        if(account.get().isActive())
+        if(!(account.get().getExpiration().isBefore(LocalDateTime.now())))
         {
             account.get().setSuspended(true);
             accountRepository.save(account.get());
@@ -188,13 +182,13 @@ public class AdminService {
         return "Account with account number " + accountNumber +" restored successfully";
     }
     public ResponseEntity<User> createAdmin(MultipartFile file,
-                                              MultipartFile file2,
-                                             String userName,
-                                             String email,
-                                          String password,
+                                            MultipartFile file2,
+                                            String userName,
+                                            String email,
+                                            String password,
                                             String phoneNumber,
-                                           String shorteeName,
-                                           String shorteeName2){
+                                            String shorteeName,
+                                            String shorteeName2){
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username;
         if (principal instanceof UserDetails) {
@@ -219,14 +213,14 @@ public class AdminService {
         user.setCreatedBy(username);
         user.setLastModifiedBy(username);
         user.setLastModifiedOn(LocalDateTime.now());
-         userRepository.save(user);
+        userRepository.save(user);
         return ResponseEntity.ok().build();
     }
     public ResponseEntity<User> createSuperAdmin(
-                                            String userName,
-                                            String email,
-                                            String password, String phoneNumber
-                                            )
+            String userName,
+            String email,
+            String password, String phoneNumber
+    )
     {
         User user = new User();
         user.setUserName(userName);
@@ -262,12 +256,11 @@ public class AdminService {
         accountRepository.save(senderAccount.get());
         accountRepository.save(receiverAccount.get());
     }
-    public void createNewInstitution(String institutionName){
-            Institution institution = new Institution();
-            institution.setInstitutionName(institutionName);
-            tenantService.initDatabase(institutionName);
-            institutionRepository.save(institution);
-    }
+//    public void createNewInstitution(String institutionName){
+//            Institution institution = new Institution();
+//            institution.setInstitutionName(institutionName);
+//            tenantService.initDatabase(institutionName);
+//            institutionRepository.save(institution);
+//    }
 }
-
 

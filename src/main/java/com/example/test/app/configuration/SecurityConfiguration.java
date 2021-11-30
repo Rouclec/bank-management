@@ -30,14 +30,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.cors().disable();
-//        http
-//                .authorizeRequests()
-//                .antMatchers("/api/v1/all/**").permitAll()
-//                .antMatchers("/api/v1/user/**").hasRole("USER")
-//                .antMatchers("/api/v1/admin/**").hasAnyRole("ADMIN","SUPER_ADMIN")
-//                .antMatchers("/api/v1/**").hasRole("SUPER_ADMIN")
-//                .anyRequest().authenticated()
-//                .and()
-//                .formLogin();
+        http
+                .authorizeRequests()
+                .antMatchers("/api/v1/all/**").permitAll()
+                .antMatchers("/api/v1/user/**").hasRole("USER")
+                .antMatchers("/api/v1/admin/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                .antMatchers("/api/v1/**").hasRole("SUPER_ADMIN")
+                .anyRequest().authenticated()
+                .and()
+                .formLogin();
     }
 }

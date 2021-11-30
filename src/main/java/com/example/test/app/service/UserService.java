@@ -68,7 +68,7 @@ public class UserService {
         account.setProduct(product);
         account.setExpiration(LocalDateTime.now().plusMinutes(createUserRequest.getAccountDurationInMonths()));
         account.setUserName(createUserRequest.getUserName());
-        account.setActive(true);
+//        account.setActive(true);
         account.setSuspended(false);
         accountRepository.save(account);
         List<Account> accounts = new ArrayList<Account>();
@@ -91,7 +91,12 @@ public class UserService {
         }
         Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
         if((account.get().getUserName()).equals(username)){
-           return "Current account balance: " + account.get().getAccountBalance();
+            if(account.get().getExpiration().isBefore(LocalDateTime.now())){
+                throw new Error("Account deactivated!");
+            }
+            else{
+                return "Current account balance: " + account.get().getAccountBalance();
+            }
         }
         else{
             throw new Error("Access denied!!");
@@ -115,8 +120,9 @@ public class UserService {
         account.setProduct(product);
         account.setAccountBalance((long) 0.00);
         account.setUserName(user.get().getUserName());
-        account.setExpiration(LocalDateTime.now().plusMonths(createAccountRequest.getDurationInMonths()));
-        account.setActive(true);
+        //TODO: CHANGE MINUTES TO MONTHS
+        account.setExpiration(LocalDateTime.now().plusMinutes(createAccountRequest.getDurationInMonths()));
+//        account.setActive(true);
         account.setSuspended(false);
         user.get().getAccountList().add(account);
         account.setCreatedOn(LocalDateTime.now());
@@ -181,7 +187,7 @@ public class UserService {
                 throw new Error("Account is suspended!!");
             }
             else {
-                account.get().setActive(false);
+                account.get().setExpiration(LocalDateTime.now());
                 accountRepository.save(account.get());
                 return "Account with account number " + accountNumber +" deactivated successfully";
             }
@@ -202,30 +208,31 @@ public class UserService {
             username = principal.toString();
         }
         if((account.get().getUserName()).equals(username))
-            {
-                if (account.get().isActive()) {
-                    if (!account.get().isSuspended()) {
-                        Long balance = (account.get().getAccountBalance() + saveRequest.getAmount());
-                        if (account.get().getProduct().getMaximumAmount().compareTo(balance) < 0)
-                            throw new Error("Account balance cannot exceed " + account.get().getProduct().getMaximumAmount());
+        {
+            if (!(account.get().getExpiration().isBefore(LocalDateTime.now()))) {
+                if (!account.get().isSuspended()) {
+                    Long balance = (account.get().getAccountBalance() + saveRequest.getAmount());
+                    if (account.get().getProduct().getMaximumAmount().compareTo(balance) < 0)
+                        throw new Error("Account balance cannot exceed " + account.get().getProduct().getMaximumAmount());
 
-                        Transactions transaction = new Transactions(null, "SAVING", account.get().getAccountNumber(), null, saveRequest.getAmount(), LocalDateTime.now(), username,LocalDateTime.now(),username,"PENDING");
-                        transactionRepository.save(transaction);
-                        adminService.confirmTransaction(transaction.getTransactionId());
-                        Savings saving = new Savings(transaction.getTransactionId(), saveRequest.getAccountNumber(), saveRequest.getAmount(), LocalDateTime.now(), transaction.getStatus());
-                        savingsRepository.save(saving);
-                    } else {
-                        throw new Error("Account is suspended!!");
-                    }
+                    Transactions transaction = new Transactions(null, "SAVING", account.get().getAccountNumber(), null, saveRequest.getAmount(), LocalDateTime.now(), username,LocalDateTime.now(),username,"PENDING");
+                    transactionRepository.save(transaction);
+                    adminService.confirmTransaction(transaction.getTransactionId());
+                    Savings saving = new Savings(transaction.getTransactionId(), saveRequest.getAccountNumber(), saveRequest.getAmount(), LocalDateTime.now(), transaction.getStatus());
+                    savingsRepository.save(saving);
                 } else {
-                    throw new Error("Account deactivated!!");
+                    throw new Error("Account is suspended!!");
                 }
             }
+            else {
+                throw new Error("Account deactivated!!");
+            }
+        }
         else{
             throw new Error("Access Denied!!");
         }
 
-     }
+    }
     public List<Transactions> getLastTenTransactions(){
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username;
@@ -248,7 +255,7 @@ public class UserService {
             username = principal.toString();
         }
         if((account.get().getUserName()).equals(username)) {
-            if (account.get().isActive()) {
+            if (!(account.get().getExpiration().isBefore(LocalDateTime.now()))) {
                 if (!account.get().isSuspended()) {
                     if (withdrawRequest.getAmount().compareTo(account.get().getAccountBalance()) > 0)
                         throw new Error("Insufficient funds");
@@ -278,9 +285,9 @@ public class UserService {
             username = principal.toString();
         }
         if((senderAccount.get().getUserName()).equals(username)) {
-            if (senderAccount.get().isActive()) {
+            if (!(senderAccount.get().getExpiration().isBefore(LocalDateTime.now()))) {
                 if (!senderAccount.get().isSuspended()) {
-                    if (receiverAccount.get().isActive()) {
+                    if (!(receiverAccount.get().getExpiration().isBefore(LocalDateTime.now()))) {
                         if (!receiverAccount.get().isSuspended()) {
                             if (transferRequest.getAmount().compareTo(senderAccount.get().getAccountBalance()) > 0)
                                 throw new Error("Insufficient funds");

@@ -138,17 +138,17 @@ public class Controller {
         return adminService.createSuperAdmin(userName,email,password,phoneNumber);
     }
 
-    @Scheduled(fixedRate = 60000)
-    public void checkExpiration(){
-        List<Account> accounts = accountRepository.findAll();
-        if(!accounts.isEmpty()) {
-            accounts.stream().forEach(acc -> {
-                if ((acc.getExpiration().isBefore(LocalDateTime.now()))&&(acc.isActive())) {
-                    adminService.adminDeactivateAccount(acc.getAccountNumber());
-                }
-            });
-
-        }
-        }
+//    @Scheduled(fixedRate = 60000)
+//    public void checkExpiration(){
+//        List<Account> accounts = accountRepository.findAll();
+//        if(!accounts.isEmpty()) {
+//            accounts.stream().forEach(acc -> {
+//                if ((acc.getExpiration().isBefore(LocalDateTime.now()))&&(acc.isActive())) {
+//                    adminService.adminDeactivateAccount(acc.getAccountNumber());
+//                }
+//            });
+//
+//        }
+//        }
     }
 
