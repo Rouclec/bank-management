@@ -8,6 +8,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,10 +20,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 @Service
 public class UserService {
@@ -48,6 +58,8 @@ public class UserService {
     @Autowired
     private  AdminService adminService;
 
+   @Autowired
+   AuthenticationManager authenticationManager;
 
 
     @Autowired
@@ -66,6 +78,7 @@ public class UserService {
         Product product = productRepository.findByProductName("CURRENT ACCOUNT");
         account.setAccountBalance((long) 0.00);
         account.setProduct(product);
+        account.setCreatedOn(LocalDateTime.now());
         account.setExpiration(LocalDateTime.now().plusMinutes(createUserRequest.getAccountDurationInMonths()));
         account.setUserName(createUserRequest.getUserName());
 //        account.setActive(true);
@@ -313,6 +326,24 @@ public class UserService {
         }
         else{
             throw new Error("Access denied!!");
+        }
+
+    }
+    public String loginUser(HttpServletRequest request, String username, String password){
+        Optional<User> user = userRepository.findByUserName(username);
+        if(passwordEncoder.matches(password,user.get().getPassword())){
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,password);
+            Authentication auth = authenticationManager.authenticate(authenticationToken);
+
+            SecurityContext sc = SecurityContextHolder.getContext();
+            sc.setAuthentication(auth);
+            HttpSession session = request.getSession(true);
+            session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, sc);
+
+            return "authenticated";
+        }
+        else{
+            return "incorrect password";
         }
     }
 }

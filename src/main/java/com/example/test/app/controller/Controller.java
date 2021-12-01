@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class Controller {
     }
 
     @PutMapping("/admin/deactivate_account")
-    public String adminDeactivateAccount(@RequestParam  String accountNumber){
+    public String adminDeactivateAccount(@ModelAttribute  String accountNumber){
        return adminService.adminDeactivateAccount(accountNumber);
     }
     @PutMapping("/admin/suspend_account")
@@ -107,6 +108,10 @@ public class Controller {
         return user.getUserName() + " updated Successfully!";
     }
 
+    @GetMapping("/all/login")
+    public String loginUser(@RequestParam String username, @RequestParam String password, HttpServletRequest request){
+        return userService.loginUser(request,username,password);
+    }
     @PutMapping("/admin/confirmTransaction/{transactionId}")
     public ResponseEntity<?> confirmTransaction(@PathVariable Long transactionId) {
       return adminService.confirmTransaction(transactionId);
